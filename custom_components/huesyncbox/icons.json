@@ -46,6 +46,15 @@
       "hdmi4_status": {
         "default": "mdi:video-input-hdmi"
       },
+      "hdmi_output_status": {
+        "default": "mdi:video-input-hdmi"
+      },
+      "bridge_ip_address": {
+        "default": "mdi:ip-network-outline"
+      },
+      "api_level": {
+        "default": "mdi:api"
+      },
       "ip_address": {
         "default": "mdi:ip-network"
       },

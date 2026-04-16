@@ -1,5 +1,4 @@
 from collections.abc import Callable
-import contextlib
 from dataclasses import dataclass
 
 from homeassistant.components.sensor import (
@@ -12,17 +11,18 @@ from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.typing import StateType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 import aiohuesyncbox
 
-from . import HueSyncBoxCoordinator
 from .const import DOMAIN
+from .coordinator import HueSyncBoxCoordinator
 
 
 @dataclass(frozen=True, kw_only=True)
 class HueSyncBoxSensorEntityDescription(SensorEntityDescription):
-    get_value: Callable[[aiohuesyncbox.HueSyncBox], str] = None  # type: ignore[assignment]
+    get_value: Callable[[aiohuesyncbox.HueSyncBox], StateType]
 
 
 WIFI_STRENGTH_STATES = {
@@ -33,7 +33,23 @@ WIFI_STRENGTH_STATES = {
     4: "excellent",
 }
 
-ENTITY_DESCRIPTIONS = [
+HDMI_STATUS_OPTIONS = ["unplugged", "plugged", "linked", "unknown"]
+
+
+def _hdmi_status_description(index: int) -> HueSyncBoxSensorEntityDescription:
+    def get_status(api: aiohuesyncbox.HueSyncBox) -> str:
+        return getattr(api.hdmi, f"input{index}").status
+
+    return HueSyncBoxSensorEntityDescription(
+        key=f"hdmi{index}_status",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        device_class=SensorDeviceClass.ENUM,
+        options=HDMI_STATUS_OPTIONS,
+        get_value=get_status,
+    )
+
+
+ENTITY_DESCRIPTIONS: list[HueSyncBoxSensorEntityDescription] = [
     HueSyncBoxSensorEntityDescription(
         key="bridge_connection_state",
         entity_category=EntityCategory.DIAGNOSTIC,
@@ -57,39 +73,31 @@ ENTITY_DESCRIPTIONS = [
         entity_registry_enabled_default=False,
         get_value=lambda api: api.hue.bridge_unique_id,
     ),
+    *(_hdmi_status_description(i) for i in (1, 2, 3, 4)),
     HueSyncBoxSensorEntityDescription(
-        key="hdmi1_status",
+        key="hdmi_output_status",
         entity_category=EntityCategory.DIAGNOSTIC,
         device_class=SensorDeviceClass.ENUM,
-        options=["unplugged", "plugged", "linked", "unknown"],
-        get_value=lambda api: api.hdmi.input1.status,
-    ),
-    HueSyncBoxSensorEntityDescription(
-        key="hdmi2_status",
-        entity_category=EntityCategory.DIAGNOSTIC,
-        device_class=SensorDeviceClass.ENUM,
-        options=["unplugged", "plugged", "linked", "unknown"],
-        get_value=lambda api: api.hdmi.input2.status,
-    ),
-    HueSyncBoxSensorEntityDescription(
-        key="hdmi3_status",
-        entity_category=EntityCategory.DIAGNOSTIC,
-        device_class=SensorDeviceClass.ENUM,
-        options=["unplugged", "plugged", "linked", "unknown"],
-        get_value=lambda api: api.hdmi.input3.status,
-    ),
-    HueSyncBoxSensorEntityDescription(
-        key="hdmi4_status",
-        entity_category=EntityCategory.DIAGNOSTIC,
-        device_class=SensorDeviceClass.ENUM,
-        options=["unplugged", "plugged", "linked", "unknown"],
-        get_value=lambda api: api.hdmi.input4.status,
+        options=HDMI_STATUS_OPTIONS,
+        get_value=lambda api: api.hdmi.output.status,
     ),
     HueSyncBoxSensorEntityDescription(
         key="ip_address",
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
         get_value=lambda api: api.device.ip_address,
+    ),
+    HueSyncBoxSensorEntityDescription(
+        key="bridge_ip_address",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+        get_value=lambda api: api.hue.bridge_ip_address,
+    ),
+    HueSyncBoxSensorEntityDescription(
+        key="api_level",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+        get_value=lambda api: api.device.api_level,
     ),
     HueSyncBoxSensorEntityDescription(
         key="wifi_strength",
@@ -118,10 +126,15 @@ async def async_setup_entry(
     entities: list[SensorEntity] = []
 
     for entity_description in ENTITY_DESCRIPTIONS:
-        # When not able to read value, entity is not supported
-        with contextlib.suppress(Exception):
-            if entity_description.get_value(coordinator.api) is not None:
-                entities.append(HueSyncBoxSensor(coordinator, entity_description))
+        # Skip entities whose underlying attribute is missing or None. Only
+        # expected absence errors are swallowed — any other exception is a
+        # real bug and must surface.
+        try:
+            value = entity_description.get_value(coordinator.api)
+        except (AttributeError, KeyError, TypeError):
+            continue
+        if value is not None:
+            entities.append(HueSyncBoxSensor(coordinator, entity_description))
 
     async_add_entities(entities)
 
@@ -149,6 +162,6 @@ class HueSyncBoxSensor(CoordinatorEntity[HueSyncBoxCoordinator], SensorEntity):
         )
 
     @property
-    def native_value(self) -> str | None:
+    def native_value(self) -> StateType:
         """Return the state of the sensor."""
         return self.entity_description.get_value(self.coordinator.api)

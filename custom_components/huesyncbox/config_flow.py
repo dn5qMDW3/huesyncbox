@@ -353,7 +353,3 @@ class HueSyncBoxConfigFlow(ConfigFlow, domain=DOMAIN):
 
 class CannotConnectError(HomeAssistantError):
     """Error to indicate we cannot connect."""
-
-
-class InvalidAuthError(HomeAssistantError):
-    """Error to indicate there is invalid auth."""

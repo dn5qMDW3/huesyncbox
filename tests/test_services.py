@@ -7,9 +7,25 @@ import pytest
 
 import aiohuesyncbox
 from custom_components import huesyncbox
-from custom_components.huesyncbox.services import async_register_services
+from custom_components.huesyncbox.services import (
+    _is_empty_payload_error,
+    async_register_services,
+)
 
-from .conftest import setup_integration
+from .conftest import GROUP_ID_1, GROUP_ID_2, setup_integration
+
+
+def test_is_empty_payload_error() -> None:
+    assert _is_empty_payload_error(aiohuesyncbox.RequestError("13: Invalid Key")) is True
+    assert (
+        _is_empty_payload_error(aiohuesyncbox.RequestError("13: Invalid Key in body"))
+        is True
+    )
+    assert _is_empty_payload_error(aiohuesyncbox.RequestError("Other")) is False
+    # args missing entirely
+    assert _is_empty_payload_error(aiohuesyncbox.RequestError()) is False
+    # non-string arg
+    assert _is_empty_payload_error(aiohuesyncbox.RequestError(42)) is False
 
 
 async def test_register_service_can_be_called_multiple_times(
@@ -95,7 +111,7 @@ async def test_set_sync_state(hass: HomeAssistant, mock_api: Mock) -> None:
         hdmi_source="input1",
         brightness=83,
         intensity="high",
-        hue_target="id1",
+        hue_target=GROUP_ID_1,
     )
 
 
@@ -187,7 +203,7 @@ async def test_set_sync_state_retry_on_invalid_state_streaming(
         blocking=True,
     )
 
-    assert mock_api.hue.set_group_active.call_args == call("id2", active=False)
+    assert mock_api.hue.set_group_active.call_args == call(GROUP_ID_2, active=False)
     assert mock_api.execution.set_state.call_count == 2
 
 

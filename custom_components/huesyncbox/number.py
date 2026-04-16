@@ -17,8 +17,8 @@ from .helpers import BrightnessRangeConverter, stop_sync_and_retry_on_invalid_st
 
 @dataclass(frozen=True, kw_only=True)
 class HueSyncBoxNumberEntityDescription(NumberEntityDescription):
-    get_value: Callable[[aiohuesyncbox.HueSyncBox], float] = None  # type: ignore[assignment]
-    set_value_fn: Callable[[aiohuesyncbox.HueSyncBox, float], Coroutine] = None  # type: ignore[assignment]
+    get_value: Callable[[aiohuesyncbox.HueSyncBox], float]
+    set_value_fn: Callable[[aiohuesyncbox.HueSyncBox, float], Coroutine]
 
 
 async def set_brightness(api: aiohuesyncbox.HueSyncBox, brightness: float) -> None:

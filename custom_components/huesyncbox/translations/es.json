@@ -8,7 +8,6 @@
     },
     "error": {
       "cannot_connect": "No se pudo conectar",
-      "invalid_auth": "Autenticación inválida",
       "unknown": "Error inesperado"
     },
     "step": {

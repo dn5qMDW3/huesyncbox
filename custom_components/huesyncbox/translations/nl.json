@@ -8,7 +8,6 @@
     },
     "error": {
       "cannot_connect": "Kan niet verbinden",
-      "invalid_auth": "Invalid authentication",
       "unknown": "Onverwachtte fout"
     },
     "step": {

@@ -112,8 +112,15 @@ venv*/
 .dmypy.json
 dmypy.json
 
+# ruff
+.ruff_cache/
+
 # Pyre type checker
 .pyre/
 
-#VS Code
+# IDE / editor settings
 .vscode/
+.idea/
+
+# macOS
+.DS_Store

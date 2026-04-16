@@ -56,25 +56,28 @@ async def async_setup_entry(hass: HomeAssistant, entry: HueSyncBoxConfigEntry) -
         path=entry.data["path"],
     )
 
-    initialized = False
+    # Use a success flag so we always release the aiohttp session if anything
+    # between `initialize()` and `async_forward_entry_setups()` fails.
+    setup_succeeded = False
     try:
-        await api.initialize()
-        initialized = True
-    except aiohuesyncbox.Unauthorized as err:
-        raise ConfigEntryAuthFailed(err) from err
-    except aiohuesyncbox.RequestError as err:
-        raise ConfigEntryNotReady(err) from err
+        try:
+            await api.initialize()
+        except aiohuesyncbox.Unauthorized as err:
+            raise ConfigEntryAuthFailed(err) from err
+        except aiohuesyncbox.RequestError as err:
+            raise ConfigEntryNotReady(err) from err
+
+        await update_device_registry(hass, entry, api)
+        update_config_entry_title(hass, entry, api.device.name)
+
+        coordinator = HueSyncBoxCoordinator(hass, entry, api)
+        entry.runtime_data = HueSyncBoxRuntimeData(coordinator)
+
+        await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+        setup_succeeded = True
     finally:
-        if not initialized:
+        if not setup_succeeded:
             await api.close()
-
-    await update_device_registry(hass, entry, api)
-    update_config_entry_title(hass, entry, api.device.name)
-
-    coordinator = HueSyncBoxCoordinator(hass, api)
-    entry.runtime_data = HueSyncBoxRuntimeData(coordinator)
-
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
 

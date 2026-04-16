@@ -112,6 +112,8 @@ select = ["ALL"]
 "tests/*" = [
   "S101",    # Asserts in tests is ok
   "PLR2004", # Magic values in tests is ok(-ish)
+  "PLR0913", # Parametrized tests legitimately take many args
+  "PLR0915", # Mock fixtures legitimately have many setup statements
 ]
 
 [tool.ruff.lint.flake8-import-conventions.extend-aliases]

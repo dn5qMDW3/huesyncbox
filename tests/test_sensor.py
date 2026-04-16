@@ -10,12 +10,13 @@ from .conftest import setup_integration
 async def test_sensor(hass: HomeAssistant, mock_api: Mock) -> None:
     """Test the total count of sensor entities after integration setup."""
     await setup_integration(hass, mock_api)
-    assert hass.states.async_entity_ids_count("sensor") == 9
+    assert hass.states.async_entity_ids_count("sensor") == 12
 
 
 async def test_sensor_default_disabled(hass: HomeAssistant, mock_api: Mock) -> None:
     await setup_integration(hass, mock_api)
-    assert hass.states.async_entity_ids_count("sensor") == 4
+    # Default-enabled: 4 HDMI inputs + HDMI output status
+    assert hass.states.async_entity_ids_count("sensor") == 5
 
 
 async def test_hdmi_status(hass: HomeAssistant, mock_api: Mock) -> None:
@@ -53,7 +54,7 @@ async def test_bridge_id(hass: HomeAssistant, mock_api: Mock) -> None:
 
     entity = hass.states.get("sensor.name_bridge_id")
     assert entity is not None
-    assert entity.state == "bridge_id"
+    assert entity.state == "c42996fffec6c2ca"
 
 
 @pytest.mark.usefixtures("entity_registry_enabled_by_default")
@@ -79,7 +80,7 @@ async def test_wifi_strength(hass: HomeAssistant, mock_api: Mock) -> None:
 
     entity = hass.states.get("sensor.name_wifi_quality")
     assert entity is not None
-    assert entity.state == "fair"
+    assert entity.state == "excellent"
 
 
 @pytest.mark.usefixtures("entity_registry_enabled_by_default")
@@ -88,4 +89,30 @@ async def test_content_info(hass: HomeAssistant, mock_api: Mock) -> None:
 
     entity = hass.states.get("sensor.name_content_info")
     assert entity is not None
-    assert entity.state == "1920 x 1080 @ 60 - SDR"
+    assert entity.state == "3840 x 2160 @ 60000 - HDR"
+
+
+async def test_hdmi_output_status(hass: HomeAssistant, mock_api: Mock) -> None:
+    await setup_integration(hass, mock_api)
+
+    entity = hass.states.get("sensor.name_hdmi_output_status")
+    assert entity is not None
+    assert entity.state == "plugged"
+
+
+@pytest.mark.usefixtures("entity_registry_enabled_by_default")
+async def test_bridge_ip_address(hass: HomeAssistant, mock_api: Mock) -> None:
+    await setup_integration(hass, mock_api)
+
+    entity = hass.states.get("sensor.name_bridge_ip_address")
+    assert entity is not None
+    assert entity.state == "1.2.3.5"
+
+
+@pytest.mark.usefixtures("entity_registry_enabled_by_default")
+async def test_api_level(hass: HomeAssistant, mock_api: Mock) -> None:
+    await setup_integration(hass, mock_api)
+
+    entity = hass.states.get("sensor.name_api_level")
+    assert entity is not None
+    assert entity.state == "10"

@@ -2,7 +2,7 @@ from unittest.mock import Mock, call
 
 from homeassistant.core import HomeAssistant
 
-from .conftest import force_coordinator_update, setup_integration
+from .conftest import GROUP_ID_1, force_coordinator_update, setup_integration
 
 
 async def test_select(hass: HomeAssistant, mock_api: Mock) -> None:
@@ -110,7 +110,7 @@ async def test_entertainment_area(hass: HomeAssistant, mock_api: Mock) -> None:
         {"entity_id": entity_under_test, "option": "Name 1"},
         blocking=True,
     )
-    assert mock_api.execution.set_state.call_args == call(hue_target="id1")
+    assert mock_api.execution.set_state.call_args == call(hue_target=GROUP_ID_1)
 
 
 async def test_led_indicator(hass: HomeAssistant, mock_api: Mock) -> None:

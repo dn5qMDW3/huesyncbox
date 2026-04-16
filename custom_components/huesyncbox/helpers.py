@@ -44,15 +44,20 @@ def update_config_entry_title(
 
 
 async def stop_sync_and_retry_on_invalid_state(
-    async_func: Callable, *args: Any, **kwargs: Any
+    async_func: Callable,
+    api: aiohuesyncbox.HueSyncBox,
+    *args: Any,
+    **kwargs: Any,
 ) -> None:
+    """Call async_func and retry once after deactivating any active sync group.
+
+    On `aiohuesyncbox.InvalidState` (another application is already syncing to
+    the bridge), stop the active group and retry. There is no UI affordance to
+    ask the user what to do, so we just deactivate whatever is active.
+    """
     try:
-        await async_func(*args, **kwargs)
+        await async_func(api, *args, **kwargs)
     except aiohuesyncbox.InvalidState:
-        # Most likely another application is already syncing to the bridge
-        # Since there is no way to ask the user what to do just
-        # stop the active application and try again
-        api: aiohuesyncbox.HueSyncBox = args[0]
         for group in api.hue.groups:
             if group.active:
                 LOGGER.info(
@@ -64,7 +69,7 @@ async def stop_sync_and_retry_on_invalid_state(
                     group.owner,
                 )
                 await api.hue.set_group_active(group.id, active=False)
-                await async_func(*args, **kwargs)
+                await async_func(api, *args, **kwargs)
                 break
 
 

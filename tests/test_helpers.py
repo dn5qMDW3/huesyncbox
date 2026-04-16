@@ -8,9 +8,10 @@ import aiohuesyncbox
 from custom_components.huesyncbox.helpers import (
     LinearRangeConverter,
     get_group_from_area_name,
+    get_hue_target_from_id,
 )
 
-from .conftest import setup_integration
+from .conftest import GROUP_ID_1, GROUP_ID_2, setup_integration
 
 
 def test_linear_range_converter() -> None:
@@ -30,7 +31,15 @@ def test_group_from_area_name(mock_api: Mock) -> None:
 
     group = get_group_from_area_name(mock_api, "Name 1")
     assert group is not None
-    assert group.id == "id1"
+    assert group.id == GROUP_ID_1
+
+
+def test_get_hue_target_from_id() -> None:
+    # Legacy v1 Hue bridge API: integer group id → "groups/<n>"
+    assert get_hue_target_from_id("5") == "groups/5"
+    assert get_hue_target_from_id("0") == "groups/0"
+    # Modern v2 API: UUID is returned as-is
+    assert get_hue_target_from_id(GROUP_ID_1) == GROUP_ID_1
 
 
 async def test_retry_on_invalid_state_nothing_streaming_so_no_retry(
@@ -84,5 +93,5 @@ async def test_retry_on_invalid_state_streaming_for_entity_services(
         service_data,
         blocking=True,
     )
-    assert mock_api.hue.set_group_active.call_args == call("id2", active=False)
+    assert mock_api.hue.set_group_active.call_args == call(GROUP_ID_2, active=False)
     assert mock_api.execution.set_state.call_count == 2

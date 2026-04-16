@@ -1,0 +1,23 @@
+version: 2
+updates:
+  # Keep GitHub Actions up to date (checkout, setup-python, etc.)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
+  # Keep Python dependencies up to date. The runtime dep is aiohuesyncbox;
+  # everything else is dev-only. Grouping reduces PR noise.
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      dev-dependencies:
+        dependency-type: "development"
+      runtime-dependencies:
+        dependency-type: "production"

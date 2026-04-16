@@ -8,7 +8,6 @@
     },
     "error": {
       "cannot_connect": "Failed to connect",
-      "invalid_auth": "Invalid authentication",
       "unknown": "Unexpected error"
     },
     "step": {
@@ -127,6 +126,21 @@
           "linked": "Linked",
           "unknown": "Unknown"
         }
+      },
+      "hdmi_output_status": {
+        "name": "HDMI output status",
+        "state": {
+          "unplugged": "Unplugged",
+          "plugged": "Plugged",
+          "linked": "Linked",
+          "unknown": "Unknown"
+        }
+      },
+      "bridge_ip_address": {
+        "name": "Bridge IP address"
+      },
+      "api_level": {
+        "name": "API level"
       },
       "wifi_strength": {
         "name": "Wifi quality",

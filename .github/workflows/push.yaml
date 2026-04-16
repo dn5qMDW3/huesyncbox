@@ -29,6 +29,9 @@ jobs:
       - name: Test with pytest
         run: |
           pytest
+      - name: Type check with mypy
+        run: |
+          mypy custom_components/huesyncbox
       - name: Hassfest
         uses: home-assistant/actions/hassfest@master
       - name: HACS validation

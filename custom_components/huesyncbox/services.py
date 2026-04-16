@@ -61,6 +61,20 @@ HUESYNCBOX_SET_SYNC_STATE_SCHEMA = vol.Schema(
     }
 )
 
+# The syncbox returns this error when the request body contains no state
+# changes. aiohuesyncbox does not expose a dedicated exception type for it,
+# so we fall back to matching the server-provided message. If upstream ever
+# introduces a typed exception, replace `_is_empty_payload_error` with an
+# isinstance check.
+_EMPTY_PAYLOAD_MARKER = "13: Invalid Key"
+
+
+def _is_empty_payload_error(exception: aiohuesyncbox.RequestError) -> bool:
+    if not exception.args:
+        return False
+    first = exception.args[0]
+    return isinstance(first, str) and _EMPTY_PAYLOAD_MARKER in first
+
 
 def syncbox_config_entry_for_device_id(
     hass: HomeAssistant, device_id: str
@@ -93,12 +107,12 @@ async def async_register_set_bridge_service(hass: HomeAssistant) -> None:
         config_entry = syncbox_config_entry_for_device_id(
             hass, call.data[ATTR_DEVICE_ID]
         )
-        bridge_id = call.data.get(ATTR_BRIDGE_ID)
-        username = call.data.get(ATTR_BRIDGE_USERNAME)
-        clientkey = call.data.get(ATTR_BRIDGE_CLIENTKEY)
-
+        # All fields are vol.Required in HUESYNCBOX_SET_BRIDGE_SCHEMA, so
+        # direct subscript is safe and matches the schema contract.
         await config_entry.runtime_data.coordinator.api.hue.set_bridge(
-            bridge_id, username, clientkey
+            call.data[ATTR_BRIDGE_ID],
+            call.data[ATTR_BRIDGE_USERNAME],
+            call.data[ATTR_BRIDGE_CLIENTKEY],
         )
 
     hass.services.async_register(
@@ -147,7 +161,7 @@ async def async_register_set_sync_state_service(hass: HomeAssistant) -> None:
                 set_state, coordinator.api, **state
             )
         except aiohuesyncbox.RequestError as ex:
-            if "13: Invalid Key" in ex.args[0]:
+            if _is_empty_payload_error(ex):
                 # Clarify this specific case as people will run into it
                 LOGGER.warning(
                     "The service call resulted in an empty message to the syncbox. Make sure some data is provided."

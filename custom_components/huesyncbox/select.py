@@ -11,19 +11,18 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 import aiohuesyncbox
 
-from .const import DOMAIN, INTENSITIES, SYNC_MODES
+from .const import DOMAIN, INPUTS, INTENSITIES, SYNC_MODES
 from .coordinator import HueSyncBoxCoordinator
 from .helpers import get_hue_target_from_id, stop_sync_and_retry_on_invalid_state
 
 LED_INDICATOR_MODES = ["off", "normal", "dimmed"]
-INPUTS = ["input1", "input2", "input3", "input4"]
 
 
 @dataclass(frozen=True, kw_only=True)
 class HueSyncBoxSelectEntityDescription(SelectEntityDescription):
     options_fn: Callable[[aiohuesyncbox.HueSyncBox], list[str]] | None = None
-    current_option_fn: Callable[[aiohuesyncbox.HueSyncBox], str] = None  # type: ignore[assignment]
-    select_option_fn: Callable[[aiohuesyncbox.HueSyncBox, str], Coroutine] = None  # type: ignore[assignment]
+    current_option_fn: Callable[[aiohuesyncbox.HueSyncBox], str]
+    select_option_fn: Callable[[aiohuesyncbox.HueSyncBox, str], Coroutine]
 
 
 def get_sync_mode(api: aiohuesyncbox.HueSyncBox) -> str:
