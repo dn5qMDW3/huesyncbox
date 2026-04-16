@@ -1,7 +1,11 @@
 # Philips Hue Play HDMI Sync Box
 
-Minimum required Home Assistant version is: 2025.12.0
+Home Assistant integration for the Philips Hue Play HDMI Sync Box (4K and 8K).
 
+[![Checks](https://img.shields.io/github/actions/workflow/status/mvdwetering/huesyncbox/push.yaml?branch=dev&label=checks)](https://github.com/mvdwetering/huesyncbox/actions/workflows/push.yaml)
+[![Latest release](https://img.shields.io/github/v/release/mvdwetering/huesyncbox?sort=semver)](https://github.com/mvdwetering/huesyncbox/releases)
+[![HA version](https://img.shields.io/badge/Home%20Assistant-%E2%89%A5%202025.12.0-41BDF5?logo=home-assistant&logoColor=white)](https://github.com/home-assistant/core)
+[![License](https://img.shields.io/github/license/mvdwetering/huesyncbox)](./LICENSE)
 [![Contributors](https://img.shields.io/github/contributors/mvdwetering/huesyncbox.svg)](https://github.com/mvdwetering/huesyncbox/graphs/contributors)
 
 - [About](#about)
@@ -34,25 +38,38 @@ Both the 4K and 8K models are supported.
 
 ## Entities
 
-Entities are created for the following features:
+### Controls
 
-- Power on/off
-- Light sync on/off
-- Intensity selection (subtle/moderate/high/intense)
-- Sync mode selection (video/music/game)
-- HDMI Input selection
-- Brightness control slider
-- Entertainment area selection
-- HDMI input connection status
-- Dolby Vision compatibility on/off (only on 4K)
-- LED indicator mode selection
-- Bridge connection status ⁺
-- Bridge ID sensor ⁺
-- IP address sensor ⁺
-- Wifi quality sensor ⁺
-- Content info sensor ⁺
+| Entity | Platform | Description |
+|---|---|---|
+| Power | Switch | Toggle the box between powersave and passthrough |
+| Light sync | Switch | Start/stop syncing lights with HDMI content |
+| Sync mode | Select | `video` / `music` / `game` |
+| Intensity | Select | `subtle` / `moderate` / `high` / `intense` (per sync mode) |
+| HDMI input | Select | Switch the active HDMI input |
+| Entertainment area | Select | Select the Hue entertainment area to sync with |
+| Brightness | Number | 1–100 slider |
 
-Entities marked with ⁺ are disabled by default.
+### Configuration
+
+| Entity | Platform | Description |
+|---|---|---|
+| LED indicator | Select | `off` / `normal` / `dimmed` |
+| Dolby Vision compatibility | Switch | Force native DV mode (4K model only) |
+
+### Diagnostic
+
+| Entity | Platform | Default | Description |
+|---|---|---|---|
+| HDMI 1–4 status | Sensor | Enabled | Connection state of each input (`unplugged`, `plugged`, `linked`, `unknown`) |
+| HDMI output status | Sensor | Enabled | Connection state of the HDMI output (useful to detect TV on/off) |
+| Content info | Sensor | Disabled | Resolution and HDR of the active input (e.g. `3840 x 2160 @ 60000 - HDR`) |
+| Bridge connection | Sensor | Disabled | State of the link to the Hue bridge |
+| Bridge ID | Sensor | Disabled | Unique ID of the connected Hue bridge |
+| Bridge IP address | Sensor | Disabled | IP of the connected Hue bridge |
+| IP address | Sensor | Disabled | IP of the sync box itself |
+| Wi-Fi quality | Sensor | Disabled | Wi-Fi signal strength (`weak`…`excellent`) |
+| API level | Sensor | Disabled | Device API version — useful when reporting issues |
 
 ### Behavior
 
