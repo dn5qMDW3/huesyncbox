@@ -124,3 +124,6 @@ dmypy.json
 
 # macOS
 .DS_Store
+
+# AI assistant memory (kept local, not committed)
+CLAUDE.md
